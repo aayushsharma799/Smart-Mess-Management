@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Mess - Login & Register</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+        /* Quantum University Background SVG */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('Quantum_University_Modern_Building_with_Quantum_Theme_Design.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.25;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .container {
+            display: flex;
+            max-width: 1200px;
+            width: 98%;
+            background: rgba(255,255,255,0.97);
+            border-radius: 14px;
+            box-shadow: 0 8px 40px rgba(0,40,80,0.08), 0 1.5px 6px rgba(0,40,80,0.09);
+            min-height: 600px;
+            position: relative;
+            z-index: 1;
+            flex-direction: row;
+        }
+        .logo-section {
+            flex: 1;
+            min-width: 280px;
+            background: linear-gradient(135deg, #208084 0%, #32b8c6 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 2rem;
+            border-radius: 14px 0 0 14px;
+            text-align: center;
+        }
+        .logo-section h1 {
+            font-size: 2.4rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        .logo-section p {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            opacity: 0.93;
+            line-height: 1.7;
+        }
+        .form-section {
+            flex: 1;
+            min-width: 280px;
+            padding: 2.3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .form-section h2 {
+            color: #208084;
+            margin-bottom: 1.5rem;
+            font-size: 1.7rem;
+        }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .tab-btn {
+            padding: 0.8rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #999;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn.active {
+            color: #208084;
+            border-bottom-color: #208084;
+        }
+        .form-group { margin-bottom: 1.4rem; }
+        .form-group label {display:block; margin-bottom:0.5rem; font-weight:600; color:#2c3e50; font-size:0.96rem;}
+        .form-group input, .form-group select {
+            width: 100%; padding: 0.8rem;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px; font-size: 0.96rem; font-family: inherit;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline:none; border-color:#208084; box-shadow:0 0 0 3px rgba(32,128,132,0.07);
+        }
+        .role-selector {
+            display: flex; gap: 1rem; margin-bottom: 1.5rem;
+        }
+        .role-btn {
+            flex: 1; padding: 0.7rem; border:2px solid #ecf0f1;
+            background:white; border-radius: 6px; cursor:pointer; font-weight:600;
+            color:#666; transition:all 0.3s;
+        }
+        .role-btn.active { background: #208084; color:white; border-color:#208084;}
+        .role-btn:hover { border-color: #208084;}
+        .password-match {font-size:0.85rem;margin-top:0.3rem;color:#999;}
+        .password-match.match {color:#27ae60;}
+        .password-match.no-match {color:#e74c3c;}
+        .btn-submit {
+            width: 100%; padding: 0.9rem;
+            background: linear-gradient(135deg, #208084 0%, #32b8c6 100%);
+            color:white; border:none; border-radius:6px; font-size:1rem;
+            font-weight:600; cursor:pointer;transition:all 0.3s; margin-top:1rem;
+        }
+        .btn-submit:hover {transform:translateY(-2px); box-shadow:0 8px 16px rgba(32,128,132,0.15);}
+        .form-content {display:none;}
+        .form-content.active {display:block; animation:fadeIn 0.3s;}
+        @keyframes fadeIn {from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+        .error-message {
+            background: rgba(231,76,60,0.09); border-left:4px solid #e74c3c;
+            color: #e74c3c; padding: 0.8rem; border-radius: 4px; margin-bottom: 1rem;
+            display: none; font-size: 0.9rem;
+        }
+        .success-message {
+            background: rgba(39,174,96,0.1); border-left:4px solid #27ae60;
+            color:#27ae60; padding:0.8rem; border-radius:4px; margin-bottom:1rem;
+            display:none;font-size:0.9rem;
+        }
+        .link-text {
+            text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #666;
+        }
+        .link-text a {color: #208084; text-decoration: none; font-weight: 600; cursor:pointer;}
+        .link-text a:hover {text-decoration: underline;}
+        .admin-note {
+            background:rgba(32,128,132,0.1); border-left:4px solid #208084;
+            padding: 0.7rem; border-radius: 4px; margin-bottom: 1rem; font-size:0.9rem; color:#208084;
+            display:none;
+        }
+        /* Responsive styles */
+        @media (max-width:900px) {
+            .container { flex-direction:column; max-width:100vw; }
+            .logo-section { border-radius:14px 14px 0 0; padding:2rem 1rem;}
+            .form-section{border-radius:0 0 14px 14px; min-width:0;}
+        }
+        @media (max-width:600px) {
+            .container { min-width:20px;}
+            .logo-section { font-size:1rem; padding:1.2rem 0.5rem;}
+            .logo-section h1 { font-size: 1.5rem; }
+            .form-section { padding: 1.1rem 0.5rem; }
+            .tabs { flex-direction:row; gap:0.5rem;}
+            .tab-btn { font-size:0.94rem; padding:0.6rem 1rem;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <h1>🍽️ Smart Mess System</h1>
+            <p>Quantum University</p>
+            <p style="font-size: 0.9rem; opacity: 0.8;">Reduce Food Waste. Optimize Meal Planning. Sustainable Future.</p>
+            <p style="margin-top: 2rem; font-size: 0.85rem; opacity: 0.7;">Smart Mess Management at Quantum University</p>
+        </div>
+        <!-- Form Section -->
+        <div class="form-section">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">🔓 Login</button>
+                <button class="tab-btn" onclick="switchTab('register')">✏️ Register</button>
+            </div>
+            <!-- LOGIN FORM -->
+            <div id="login" class="form-content active">
+                <h2>Welcome Back</h2>
+                <div class="error-message" id="loginError"></div>
+                <div class="success-message" id="loginSuccess"></div>
+                <div class="form-group">
+                    <label>👥 Login As:</label>
+                    <div class="role-selector">
+                        <button type="button" class="role-btn active" onclick="setLoginRole('student')">🎓 Student</button>
+                        <button type="button" class="role-btn" onclick="setLoginRole('admin')">👨‍💼 Admin</button>
+                    </div>
+                </div>
+                <form onsubmit="loginUser(event)">
+                    <div class="form-group">
+                        <label>📧 Email or ID</label>
+                        <input type="text" id="loginEmail" placeholder="Enter your email or ID" required>
+                    </div>
+                    <div class="form-group">
+                        <label>🔐 Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Login</button>
+                </form>
+                <div class="link-text">
+                    Don't have an account? <a onclick="switchTab('register')">Register here</a>
+                </div>
+            </div>
+            <!-- REGISTER FORM -->
+            <div id="register" class="form-content">
+                <h2>Create Account</h2>
+                <div class="error-message" id="registerError"></div>
+                <div class="success-message" id="registerSuccess"></div>
+                <div class="admin-note" id="adminNote" style="display:none;">
+                    ⚠️ Admin accounts are created by administrators only. Please contact administration.
+                </div>
+                <div class="form-group">
+                    <label>👥 Register As:</label>
+                    <div class="role-selector">
+                        <button type="button" class="role-btn active" onclick="setRegisterRole('student')">🎓 Student</button>
+                        <button type="button" class="role-btn" onclick="setRegisterRole('admin')">👨‍💼 Admin</button>
+                    </div>
+                </div>
+                <form onsubmit="registerUser(event)" id="registerForm">
+                    <div class="form-group">
+                        <label>👤 Full Name</label>
+                        <input type="text" id="regName" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>📧 Email</label>
+                        <input type="email" id="regEmail" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group" id="phoneGroup">
+                        <label>📱 Phone Number</label>
+                        <input type="tel" id="regPhone" placeholder="Enter your phone number" required>
+                    </div>
+                    <div class="form-group" id="studentIdGroup">
+                        <label>🎓 Student ID</label>
+                        <input type="text" id="regStudentId" placeholder="Enter your unique student ID" required>
+                    </div>
+                    <div class="form-group" id="adminIdGroup" style="display: none;">
+                        <label>🔑 Admin Code</label>
+                        <input type="password" id="regAdminCode" placeholder="Enter admin registration code">
+                    </div>
+                    <div class="form-group">
+                        <label>🔐 Password</label>
+                        <input type="password" id="regPassword" placeholder="Create a password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>🔐 Confirm Password</label>
+                        <input type="password" id="regConfirmPassword" placeholder="Confirm your password" required>
+                        <div class="password-match" id="passwordMatch"></div>
+                    </div>
+                    <button type="submit" class="btn-submit">Register</button>
+                </form>
+                <div class="link-text">
+                    Already have an account? <a onclick="switchTab('login')">Login here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+        let loginRole = 'student';
+        let registerRole = 'student';
+        function switchTab(tab) {
+            document.querySelectorAll('.form-content').forEach(el=>el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+        function setLoginRole(role) {
+            loginRole = role;
+            document.querySelectorAll('#login .role-btn').forEach(btn=>btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        function setRegisterRole(role) {
+            registerRole = role;
+            document.querySelectorAll('#register .role-btn').forEach(btn=>btn.classList.remove('active'));
+            event.target.classList.add('active');
+            if(role==='admin'){
+                document.getElementById('adminNote').style.display='block';
+                document.getElementById('phoneGroup').style.display='none';
+                document.getElementById('studentIdGroup').style.display='none';
+                document.getElementById('adminIdGroup').style.display='block';
+                document.getElementById('regPhone').removeAttribute('required');
+                document.getElementById('regStudentId').removeAttribute('required');
+                document.getElementById('regAdminCode').setAttribute('required','true');
+            }else{
+                document.getElementById('adminNote').style.display='none';
+                document.getElementById('phoneGroup').style.display='block';
+                document.getElementById('studentIdGroup').style.display='block';
+                document.getElementById('adminIdGroup').style.display='none';
+                document.getElementById('regPhone').setAttribute('required','true');
+                document.getElementById('regStudentId').setAttribute('required','true');
+                document.getElementById('regAdminCode').removeAttribute('required');
+            }
+        }
+        // Check if already logged in
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        const role = localStorage.getItem('role');
+        if(token&&user&&role){
+            if(role==='admin'||role==='superadmin'){
+                window.location.href='admin-dashboard.html';
+            }else if(role==='student'){
+                window.location.href='dashboard.html';
+            }
+        }
+        // Password confirmation
+        document.getElementById('regConfirmPassword').addEventListener('input',function(){
+            const password=document.getElementById('regPassword').value;
+            const confirmPassword=this.value;
+            const match=document.getElementById('passwordMatch');
+            if(password===confirmPassword && password!==''){
+                match.textContent='✓ Passwords match';
+                match.classList.remove('no-match'); match.classList.add('match');
+            }else if(confirmPassword!==''){
+                match.textContent='✗ Passwords do not match';
+                match.classList.remove('match'); match.classList.add('no-match');
+            }else{match.textContent='';match.classList.remove('match','no-match');}
+        });
+        async function loginUser(event){
+            event.preventDefault();
+            const email=document.getElementById('loginEmail').value;
+            const password=document.getElementById('loginPassword').value;
+            if(!email||!password){
+                showError('loginError','Please enter email and password');
+                return;
+            }
+            try{
+                const response=await fetch(`${API_BASE_URL}/auth/login`,{
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({email,password,role:loginRole})
+                });
+                const data=await response.json();
+                if(data.error){showError('loginError', data.error);}
+                else{
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('role', data.user.role);
+                    if(data.user.role==='admin'||data.user.role==='superadmin'){
+                        window.location.href='admin-dashboard.html';
+                    }else if(data.user.role==='student'){
+                        window.location.href='dashboard.html';
+                    }
+                }
+            }catch(err){showError('loginError','Login failed: '+err.message);}
+        }
+        async function registerUser(event){
+            event.preventDefault();
+            const name=document.getElementById('regName').value;
+            const email=document.getElementById('regEmail').value;
+            const password=document.getElementById('regPassword').value;
+            const confirmPassword=document.getElementById('regConfirmPassword').value;
+            if(password!==confirmPassword){showError('registerError','Passwords do not match');return;}
+            let payload={name,email,password,role:registerRole};
+            if(registerRole==='student'){
+                const phone=document.getElementById('regPhone').value;
+                const studentId=document.getElementById('regStudentId').value;
+                if(!phone||!studentId){
+                    showError('registerError','Please fill all fields'); return;
+                }
+                payload={...payload, phone, studentId};
+            }else if(registerRole==='admin'){
+                const adminCode=document.getElementById('regAdminCode').value;
+                if(!adminCode){showError('registerError','Please enter admin code'); return;}
+                payload={...payload, adminCode};
+            }
+            try{
+                const response=await fetch(`${API_BASE_URL}/auth/register`,{
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify(payload)
+                });
+                const data=await response.json();
+                if(data.error){showError('registerError', data.error);}
+                else{
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('role', data.user.role);
+                    if(data.user.role==='admin'||data.user.role==='superadmin'){
+                        window.location.href='admin-dashboard.html';
+                    }else{window.location.href='dashboard.html';}
+                }
+            }catch(err){showError('registerError', 'Registration failed: '+err.message);}
+        }
+        function showError(elementId, message){
+            const element=document.getElementById(elementId);
+            element.textContent=message; element.style.display='block';
+            setTimeout(()=>{element.style.display='none';},5000);
+        }
+        // Make both forms responsive to role selection
+        setLoginRole(loginRole);
+        setRegisterRole(registerRole);
+        console.log('✅ Smart Mess System Ready & Responsive!');
+    </script>
+</body>
+</html>

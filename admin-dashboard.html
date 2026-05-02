@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Mess – Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f4f6f9; color: #333; }
+    header { background: #17a2b8; color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 20px; }
+    header .user-info { font-size: 14px; }
+    main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    
+    .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid #ddd; overflow-x: auto; }
+    .tab { padding: 0.8rem 1.5rem; cursor: pointer; background: none; border: none; font-size: 1rem; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap; }
+    .tab.active { color: #17a2b8; border-bottom-color: #17a2b8; }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .card { background: #fff; padding: 15px 18px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .card h3 { margin-bottom: 8px; font-size: 16px; color: #0c5460; }
+    .card p { font-size: 14px; margin-bottom: 4px; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+    th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+    th { background: #17a2b8; color: #fff; font-weight: 600; }
+    tr:hover { background: #f9f9f9; }
+    
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #fff; }
+    .badge.ok { background: #28a745; }
+    .badge.warn { background: #ffc107; color: #333; }
+    
+    .top-bar-btns button { margin-left: 8px; padding: 6px 10px; border-radius: 4px; border: none; cursor: pointer; font-size: 13px; }
+    .btn-logout { background: #dc3545; color: #fff; }
+    .btn-home { background: #ffc107; color: #333; }
+    
+    .stat-card { background: #fff; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 4px solid #17a2b8; }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #17a2b8; margin: 8px 0; }
+    .stat-label { font-size: 13px; color: #666; }
+    
+    .donation-alert { background: #e8f5e9; border: 2px solid #27ae60; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .donation-alert h3 { color: #27ae60; margin-bottom: 8px; }
+    
+    .ngo-list { background: #fff; border-radius: 6px; overflow: hidden; }
+    .ngo-item { padding: 12px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+    .ngo-item:last-child { border-bottom: none; }
+    .ngo-action { background: #28a745; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .ngo-action:hover { background: #239652; }
+    
+    .input-group { margin-bottom: 1rem; }
+    .input-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+    .input-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Smart Mess – Admin Dashboard</h1>
+  <div class="user-info">
+    <span id="adminName">Admin</span> |
+    <span id="adminEmail">admin@example.com</span>
+    <span class="top-bar-btns">
+      <button class="btn-home" onclick="goToHome()">Home</button>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </span>
+  </div>
+</header>
+
+<main>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('attendance', this)">📍 Student Attendance</button>
+    <button class="tab" onclick="switchTab('kitchen', this)">👨‍🍳 Kitchen Dashboard</button>
+    <button class="tab" onclick="switchTab('donations', this)">🤝 Donations</button>
+    <button class="tab" onclick="switchTab('analytics', this)">📊 Analytics</button>
+  </div>
+
+  <!-- TAB 1: ATTENDANCE -->
+  <div id="attendance" class="tab-content active">
+    <div class="cards">
+      <div class="card">
+        <div class="stat-label">Total Students Present</div>
+        <div class="stat-number" id="totalRecords">0</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Breakfast - Eating</div>
+        <div class="stat-number" id="bfEating">0</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Lunch - Eating</div>
+        <div class="stat-number" id="lunchEating">0</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Dinner - Eating</div>
+        <div class="stat-number" id="dinnerEating">0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Today's Student Meal Status</h3>
+      <p id="todayDateLine" style="font-size: 13px; margin-bottom: 8px; font-weight: 600;">Date: —</p>
+      <p id="summaryLine" style="font-size: 13px; margin-bottom: 8px;">Loading attendance...</p>
+      <div style="overflow-x: auto;">
+        <table id="attendanceTable">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Student ID</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Breakfast</th>
+              <th>Lunch</th>
+              <th>Dinner</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- rows filled by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: KITCHEN DASHBOARD -->
+  <div id="kitchen" class="tab-content">
+    <div class="cards">
+      <div class="stat-card">
+        <div class="stat-label">Expected Students</div>
+        <div class="stat-number">420</div>
+        <div style="font-size: 12px; color: #27ae60;">Out of 500 (84%)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Predicted Meals</div>
+        <div class="stat-number">420</div>
+        <div style="font-size: 12px;">For today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Est. Food Waste</div>
+        <div class="stat-number">12 kg</div>
+        <div style="font-size: 12px; color: #27ae60;">↓ 85% reduction</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Today's Meal Preparation Guide</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Meal</th>
+            <th>Students Eating</th>
+            <th>Recommended Portions</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Breakfast</strong></td>
+            <td>380</td>
+            <td>400 (20% buffer)</td>
+            <td><span class="badge ok">✓ Optimized</span></td>
+          </tr>
+          <tr>
+            <td><strong>Lunch</strong></td>
+            <td>420</td>
+            <td>440 (20% buffer)</td>
+            <td><span class="badge ok">✓ Optimized</span></td>
+          </tr>
+          <tr>
+            <td><strong>Dinner</strong></td>
+            <td>410</td>
+            <td>430 (20% buffer)</td>
+            <td><span class="badge ok">✓ Optimized</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <h3>Report Leftover Food</h3>
+      <div class="input-group">
+        <label>Quantity (kg)</label>
+        <input id="leftoverKg" type="number" placeholder="Enter leftover kg" value="18" />
+      </div>
+      <button style="width:100%; padding:10px; background:#f39c12; border:none; border-radius:6px; cursor:pointer; font-weight:600; color: white;"
+              onclick="reportLeftover()">Report Leftover</button>
+    </div>
+  </div>
+
+  <!-- TAB 3: DONATIONS -->
+  <div id="donations" class="tab-content">
+    <div class="donation-alert">
+      <h3>🎯 DONATION ALERT - TRIGGERED!</h3>
+      <p><strong>Leftover Food Detected:</strong> 18 kg of Rice, Daal & Vegetables</p>
+      <p><strong>Status:</strong> ✓ Fresh & Packable</p>
+      <p><strong>Estimated Meals:</strong> 54 meals for beneficiaries</p>
+    </div>
+
+    <div class="card">
+      <h3>📍 Nearby NGOs & Shelters</h3>
+      <div class="ngo-list">
+        <div class="ngo-item">
+          <div>
+            <strong>🏥 Feeding India</strong>
+            <p style="font-size:12px; color:#666;">Distance: 2.3 km | Capacity: 500+ meals</p>
+          </div>
+          <button class="ngo-action" onclick="schedulePickup('feeding-india')">Schedule</button>
+        </div>
+        <div class="ngo-item">
+          <div>
+            <strong>🏠 RoundTable India</strong>
+            <p style="font-size:12px; color:#666;">Distance: 3.1 km | Capacity: 1000+ meals</p>
+          </div>
+          <button class="ngo-action" onclick="schedulePickup('roundtable')">Schedule</button>
+        </div>
+        <div class="ngo-item">
+          <div>
+            <strong>🛡️ Aashray Foundation</strong>
+            <p style="font-size:12px; color:#666;">Distance: 4.2 km | Capacity: 200 meals</p>
+          </div>
+          <button class="ngo-action" onclick="schedulePickup('aashray')">Schedule</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <h3>📋 Donation History (This Month)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Food Quantity</th>
+            <th>NGO Partner</th>
+            <th>People Served</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>28 Nov 2025</td>
+            <td>22 kg</td>
+            <td>Feeding India</td>
+            <td>66</td>
+          </tr>
+          <tr>
+            <td>27 Nov 2025</td>
+            <td>16 kg</td>
+            <td>RoundTable India</td>
+            <td>48</td>
+          </tr>
+          <tr>
+            <td>26 Nov 2025</td>
+            <td>20 kg</td>
+            <td>Aashray Foundation</td>
+            <td>60</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 4: ANALYTICS -->
+  <div id="analytics" class="tab-content">
+    <div class="cards">
+      <div class="stat-card">
+        <div class="stat-label">Waste Reduction</div>
+        <div class="stat-number" style="color:#27ae60;">85%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Meals Saved</div>
+        <div class="stat-number">2,040</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Money Saved</div>
+        <div class="stat-number">₹20,400</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">CO₂ Offset</div>
+        <div class="stat-number">450 kg</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>30-Day Impact Summary</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Total Food Waste (Before)</strong></td>
+            <td>2,400 kg</td>
+            <td>Baseline</td>
+          </tr>
+          <tr>
+            <td><strong>Total Food Waste (After)</strong></td>
+            <td>360 kg</td>
+            <td>↓ 85% Reduction</td>
+          </tr>
+          <tr>
+            <td><strong>Food Donated</strong></td>
+            <td>2,040 kg</td>
+            <td>✓ 6,120 People Fed</td>
+          </tr>
+          <tr>
+            <td><strong>Cost Savings</strong></td>
+            <td>₹20,400</td>
+            <td>↓ Monthly Savings</td>
+          </tr>
+          <tr>
+            <td><strong>CO₂ Emissions Avoided</strong></td>
+            <td>450 kg</td>
+            <td>= 30 Trees Planted</td>
+          </tr>
+          <tr>
+            <td><strong>Avg Daily Attendance</strong></td>
+            <td>420/500 (84%)</td>
+            <td>✓ Highly Accurate</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div class="footer">
+  <p>Smart Mess System - Admin Dashboard | © 2025</p>
+</div>
+
+<script>
+  const API_BASE_URL = 'http://localhost:5000/api';
+
+  const userRaw = localStorage.getItem('user');
+  const user = userRaw ? JSON.parse(userRaw) : null;
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    window.location.href = 'index.html';
+  }
+
+  function goToHome() {
+    window.location.href = 'index.html';
+  }
+
+  function switchTab(tabName, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+
+  async function loadTodayAttendance() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/attendance/today-summary`);
+      const data = await res.json();
+
+      const tbody = document.querySelector('#attendanceTable tbody');
+      tbody.innerHTML = '';
+
+      data.records.forEach(r => {
+        const tr = document.createElement('tr');
+        
+        // Format date and time
+        const attendanceDate = new Date(r.date);
+        const dateStr = attendanceDate.toLocaleDateString('en-IN');
+        const timeStr = attendanceDate.toLocaleTimeString('en-IN', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          second: '2-digit' 
+        });
+        
+        tr.innerHTML = `
+          <td>${r.name || '—'}</td>
+          <td><strong>${r.studentId || r._id || '—'}</strong></td>
+          <td>${dateStr}</td>
+          <td>${timeStr}</td>
+          <td><span style="background: ${r.breakfast === 'eating' ? '#27ae60' : '#f39c12'}; color: white; padding: 3px 6px; border-radius: 3px; font-size: 12px;">${r.breakfast}</span></td>
+          <td><span style="background: ${r.lunch === 'eating' ? '#27ae60' : '#f39c12'}; color: white; padding: 3px 6px; border-radius: 3px; font-size: 12px;">${r.lunch}</span></td>
+          <td><span style="background: ${r.dinner === 'eating' ? '#27ae60' : '#f39c12'}; color: white; padding: 3px 6px; border-radius: 3px; font-size: 12px;">${r.dinner}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const t = data.totals;
+      document.getElementById('totalRecords').textContent = data.records.length;
+      document.getElementById('bfEating').textContent = t.breakfast.eating;
+      document.getElementById('lunchEating').textContent = t.lunch.eating;
+      document.getElementById('dinnerEating').textContent = t.dinner.eating;
+
+      // Show today's date
+      const today = new Date();
+      const todayStr = today.toLocaleDateString('en-IN', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      document.getElementById('todayDateLine').textContent = `Date: ${todayStr}`;
+
+      const summary = `
+        Breakfast – Eating: ${t.breakfast.eating}, Skipping: ${t.breakfast.skipping} |
+        Lunch – Eating: ${t.lunch.eating}, Skipping: ${t.lunch.skipping} |
+        Dinner – Eating: ${t.dinner.eating}, Skipping: ${t.dinner.skipping}
+      `;
+      document.getElementById('summaryLine').textContent = summary;
+    } catch (err) {
+      console.error('Load today attendance error:', err);
+      document.getElementById('summaryLine').textContent = 'Error loading data.';
+    }
+  }
+
+  function schedulePickup(ngo) {
+    const names = {
+      'feeding-india': 'Feeding India',
+      'roundtable': 'RoundTable India',
+      'aashray': 'Aashray Foundation'
+    };
+    alert(`✓ Pickup scheduled with ${names[ngo]}!\n\nETA: 45 minutes`);
+  }
+
+  function reportLeftover() {
+    const qty = Number(document.getElementById('leftoverKg').value || 0);
+    if (!qty || qty <= 0) {
+      alert('Enter leftover quantity in kg');
+      return;
+    }
+    alert(`Leftover of ${qty} kg recorded.`);
+  }
+
+  // Access control + initial load
+  if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+    alert('Access denied: admin only');
+    window.location.href = 'index.html';
+  } else {
+    document.getElementById('adminName').textContent = user.name || 'Admin';
+    document.getElementById('adminEmail').textContent = user.email || '';
+    loadTodayAttendance();
+  }
+</script>
+
+</body>
+</html>
