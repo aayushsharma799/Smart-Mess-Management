@@ -6,29 +6,55 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
+// ================== PASSPORT SERIALIZATION ==================
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
+});
+
 // ================== REGISTER ==================
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, phone, studentId, password } = req.body;
+    const { name, email, phone, studentId, password, role, adminCode } = req.body;
 
     console.log('🟢 REGISTER body:', req.body);
 
     // Check duplicate user
     const existingUser = await User.findOne({
-      $or: [{ email }, { studentId }]
+      $or: [{ email }, ...(studentId ? [{ studentId }] : [])]
     });
 
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists' });
     }
 
+    // Determine user role
+    let userRole = 'student';
+    if (role === 'admin') {
+      // Validate admin code
+      const ADMIN_CODE = process.env.ADMIN_CODE || 'ADMIN2025';
+      if (!adminCode || adminCode !== ADMIN_CODE) {
+        return res.status(403).json({ error: 'Invalid admin registration code' });
+      }
+      userRole = 'admin';
+    }
+
     // DO NOT hash here; model pre-save hook will hash
     const user = new User({
       name,
       email,
-      phone,
-      studentId,
-      password        // raw password; User.js will hash before save
+      phone: phone || undefined,
+      studentId: studentId || undefined,
+      password,       // raw password; User.js will hash before save
+      role: userRole
     });
 
     await user.save();
@@ -59,7 +85,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     console.log('📩 Login body:', req.body);
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
@@ -76,6 +102,12 @@ router.post('/login', async (req, res) => {
     if (!user) {
       console.log('❌ User not found for:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Validate role if provided (frontend sends login role)
+    if (role && role !== user.role) {
+      console.log(`❌ Role mismatch: expected ${role}, got ${user.role}`);
+      return res.status(401).json({ error: `This account is not registered as ${role}` });
     }
 
     console.log('🔐 Comparing password for user:', user.email);
@@ -121,13 +153,22 @@ passport.use(new GoogleStrategy(
     try {
       let user = await User.findOne({ googleId: profile.id });
       if (!user) {
-        user = new User({
-          name: profile.displayName,
-          email: profile.emails[0].value,
-          googleId: profile.id,
-          verified: true
-        });
-        await user.save();
+        // Also check if user exists by email
+        user = await User.findOne({ email: profile.emails[0].value });
+        if (user) {
+          // Link Google account to existing user
+          user.googleId = profile.id;
+          user.verified = true;
+          await user.save();
+        } else {
+          user = new User({
+            name: profile.displayName,
+            email: profile.emails[0].value,
+            googleId: profile.id,
+            verified: true
+          });
+          await user.save();
+        }
       }
       return done(null, user);
     } catch (error) {
@@ -141,7 +182,7 @@ router.get('/google', passport.authenticate('google', {
 }));
 
 router.get('/google/callback',
-  passport.authenticate('google'),
+  passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
     const token = jwt.sign(
       { userId: req.user._id, role: req.user.role },

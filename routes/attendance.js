@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Attendance = require('../models/Attendance');
+const authMiddleware = require('../middleware/auth');
 
 // Mark attendance (POST)
 router.post('/mark', async (req, res) => {

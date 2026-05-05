@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
 const passport = require('passport');
+const path = require('path');
 
 const connectDB = require('./config/db');  // ← Import connection
 
@@ -19,10 +20,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({ 
     secret: process.env.JWT_SECRET, 
     resave: false, 
-    saveUninitialized: true 
+    saveUninitialized: false 
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Serve static frontend files (HTML, CSS, JS, images)
+app.use(express.static(path.join(__dirname)));
 
 // ← CONNECT TO MONGODB
 connectDB();

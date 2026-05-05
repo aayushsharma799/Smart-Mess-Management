@@ -5,9 +5,10 @@ const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, unique: true, required: true },
     phone: String,
-    studentId: { type: String, unique: true, sparse: true },  // This field
+    studentId: { type: String, unique: true, sparse: true },
     password: String,
-    role: { type: String, enum: ['student', 'admin'], default: 'student' },
+    googleId: { type: String, unique: true, sparse: true },
+    role: { type: String, enum: ['student', 'admin', 'superadmin'], default: 'student' },
     verified: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
