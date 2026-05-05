@@ -144,28 +144,7 @@ http://localhost:5000
 
 ---
 
-## 🔑 Environment Variables
 
-Create a `.env` file in the root of your project with the following variables:
-
-```env
-# MongoDB Connection String
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/smart-mess?retryWrites=true&w=majority
-
-# JWT Secret (use a long random string)
-JWT_SECRET=your_super_secret_jwt_key_here
-
-# Server Port
-PORT=5000
-
-# Google OAuth Credentials (from Google Cloud Console)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
-
-# Admin Registration Code (required to create admin accounts)
-ADMIN_CODE=your_secret_admin_registration_code
-```
 
 > ⚠️ **Never commit your `.env` file to GitHub.** It is already listed in `.gitignore`.
 
