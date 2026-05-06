@@ -139,7 +139,7 @@ npm run dev
 
 **5. Open in browser**
 ```
-http://localhost:5000
+https://smart-mess-management.vercel.app/
 ```
 
 ---
