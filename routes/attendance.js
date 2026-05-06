@@ -1,53 +1,47 @@
 const express = require('express');
 const router = express.Router();
-const Attendance = require('../models/Attendance');
-const authMiddleware = require('../middleware/auth');
+
+// In-memory data store for attendance
+let attendanceRecords = [];
 
 // Mark attendance (POST)
 router.post('/mark', async (req, res) => {
   try {
     const { studentId, name, breakfast, lunch, dinner, dietaryPreferences } = req.body;
 
-    console.log('📝 Mark attendance:', { studentId, name, breakfast, lunch, dinner, dietaryPreferences });
-
     if (!studentId || !breakfast || !lunch || !dinner) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    const todayStr = new Date().toISOString().slice(0, 10);
+
     // Check if student already marked attendance today
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
+    const existing = attendanceRecords.find(r => r.studentId === studentId && r.date === todayStr);
 
-    const existingAttendance = await Attendance.findOne({
-      studentId: studentId,
-      date: { $gte: start, $lte: end }
-    });
-
-    if (existingAttendance) {
+    if (existing) {
       return res.status(400).json({ 
         error: 'You have already marked attendance today. You can mark again tomorrow.' 
       });
     }
 
-    const attendance = new Attendance({
+    const attendance = {
       studentId,
       name,
       breakfast,
       lunch,
       dinner,
-      dietaryPreferences: dietaryPreferences || ''
-    });
+      dietaryPreferences: dietaryPreferences || '',
+      date: todayStr,
+      timestamp: new Date().toISOString()
+    };
 
-    await attendance.save();
+    attendanceRecords.push(attendance);
 
     return res.json({
       message: 'Attendance marked successfully',
       attendance
     });
   } catch (err) {
-    console.error('Mark attendance error:', err);
     return res.status(500).json({ error: err.message });
   }
 });
@@ -55,14 +49,9 @@ router.post('/mark', async (req, res) => {
 // Get today's attendance summary (for admin)
 router.get('/today-summary', async (req, res) => {
   try {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-
-    const records = await Attendance.find({
-      date: { $gte: start, $lte: end }
-    }).lean();
+    const todayStr = new Date().toISOString().slice(0, 10);
+    
+    const records = attendanceRecords.filter(r => r.date === todayStr);
 
     let totals = {
       breakfast: { eating: 0, skipping: 0 },
@@ -80,12 +69,11 @@ router.get('/today-summary', async (req, res) => {
     });
 
     return res.json({
-      date: start.toISOString().slice(0, 10),
+      date: todayStr,
       totals,
       records
     });
   } catch (err) {
-    console.error('Today summary error:', err);
     return res.status(500).json({ error: err.message });
   }
 });
